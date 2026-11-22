@@ -1,8 +1,8 @@
 dependencies {
     runtimeOnlyNonPublishable(rfg.deobf("curse.maven:biomes-o-plenty-220318:2499612"))
     // runtimeOnlyNonPublishable("com.github.GTNewHorizons:RTG:1.2.0-GTNH:dev")
-    runtimeOnlyNonPublishable("com.github.GTNewHorizons:Realistic-World-Gen:alpha-1.5.2:dev")
-    runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.7.44-GTNH:dev")
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:Realistic-World-Gen:alpha-1.5.3:dev")
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.8.175-GTNH:dev")
 
     compileOnlyApi("com.github.song682:CatFrame:v0.1.0:deobf") { transitive = false }
     compileOnlyApi("com.github.song682:CreateWorldUI:v6.0.1:deobf") { transitive = false }

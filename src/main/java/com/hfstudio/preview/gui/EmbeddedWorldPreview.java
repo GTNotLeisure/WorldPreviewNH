@@ -90,6 +90,21 @@ public class EmbeddedWorldPreview {
         delegate.cycleDimensionPrevious();
     }
 
+    /**
+     * Forwards a normalized scroll event delivered by an embedded host's own
+     * input pipeline (e.g. the CreateWorldUI tab component system).
+     */
+    public void handleScroll(int delta) {
+        delegate.handleScroll(delta);
+    }
+
+    /**
+     * Restores a dimension by id, used when an embedded host rebuilds its tab.
+     */
+    public void selectDimensionById(int dimensionId) {
+        delegate.selectDimensionById(dimensionId);
+    }
+
     public int getCenterBlockX() {
         return delegate.getCenterBlockX();
     }

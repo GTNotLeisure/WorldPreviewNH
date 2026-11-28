@@ -1000,55 +1000,73 @@ public class GuiWorldPreview extends GuiScreen {
         int scroll = Mouse.getEventDWheel();
 
         if (scroll != 0) {
-            // Dimension popup scroll
-            if (dimPopupVisible && btnDimension != null) {
-                int visibleCount = Math.min(dimensionList.size(), DIM_POPUP_MAX_VISIBLE);
-                int popupHeight = visibleCount * DIM_POPUP_ENTRY_HEIGHT + 4;
-                int popupX = btnDimension.xPosition;
-                int popupY = btnDimension.yPosition - popupHeight;
-                int popupWidth = btnDimension.width;
+            handleScroll(scroll, mouseX, mouseY);
+        }
+    }
 
-                if (mouseX >= popupX && mouseX < popupX + popupWidth
-                    && mouseY >= popupY
-                    && mouseY < popupY + popupHeight) {
-                    if (scroll < 0) {
-                        dimPopupScrollOffset++;
-                    } else {
-                        dimPopupScrollOffset--;
-                    }
-                    int maxScroll = Math.max(0, dimensionList.size() - DIM_POPUP_MAX_VISIBLE);
-                    dimPopupScrollOffset = Math.max(0, Math.min(dimPopupScrollOffset, maxScroll));
-                    return;
-                }
-            }
+    /**
+     * Shared scroll entry used by embedded hosts (e.g. the CreateWorldUI preview tab)
+     * that deliver normalized scroll events through their own input pipeline instead
+     * of the vanilla mouse event loop.
+     */
+    public void handleScroll(int scroll) {
+        if (mc == null) {
+            return;
+        }
+        int mouseX = Mouse.getX() * this.width / this.mc.displayWidth;
+        int mouseY = this.height - Mouse.getY() * this.height / this.mc.displayHeight - 1;
+        handleScroll(scroll, mouseX, mouseY);
+    }
 
-            if (isInMap(mouseX, mouseY)) {
-                if (settings.heightSampling || settings.yIntersection) {
-                    // Scroll on map changes Y level
-                    if (scroll > 0) {
-                        settings.incrementY();
-                    } else {
-                        settings.decrementY();
-                    }
-                    // Y change re-interprets existing biome data, no resample needed
-                    textureNeedsUpdate = true;
+    private void handleScroll(int scroll, int mouseX, int mouseY) {
+        // Dimension popup scroll
+        if (dimPopupVisible && btnDimension != null) {
+            int visibleCount = Math.min(dimensionList.size(), DIM_POPUP_MAX_VISIBLE);
+            int popupHeight = visibleCount * DIM_POPUP_ENTRY_HEIGHT + 4;
+            int popupX = btnDimension.xPosition;
+            int popupY = btnDimension.yPosition - popupHeight;
+            int popupWidth = btnDimension.width;
+
+            if (mouseX >= popupX && mouseX < popupX + popupWidth
+                && mouseY >= popupY
+                && mouseY < popupY + popupHeight) {
+                if (scroll < 0) {
+                    dimPopupScrollOffset++;
                 } else {
-                    // Scroll zooms
-                    if (scroll > 0) {
-                        settings.blocksPerPixel = Math.max(MIN_BLOCKS_PER_PIXEL, settings.blocksPerPixel / 2);
-                    } else {
-                        settings.blocksPerPixel = Math.min(MAX_BLOCKS_PER_PIXEL, settings.blocksPerPixel * 2);
-                    }
-                    requestViewportUpdate();
+                    dimPopupScrollOffset--;
                 }
+                int maxScroll = Math.max(0, dimensionList.size() - DIM_POPUP_MAX_VISIBLE);
+                dimPopupScrollOffset = Math.max(0, Math.min(dimPopupScrollOffset, maxScroll));
+                return;
             }
-            // Let list handle scroll if mouse is in left panel
-            if (mouseX >= panelX && mouseX < panelX + panelWidth) {
-                if (activeTab == 0) {
-                    biomeList.handleMouseInputAt(panelX, panelWidth);
+        }
+
+        if (isInMap(mouseX, mouseY)) {
+            if (settings.heightSampling || settings.yIntersection) {
+                // Scroll on map changes Y level
+                if (scroll > 0) {
+                    settings.incrementY();
                 } else {
-                    seedList.handleMouseInputAt(panelX, panelWidth);
+                    settings.decrementY();
                 }
+                // Y change re-interprets existing biome data, no resample needed
+                textureNeedsUpdate = true;
+            } else {
+                // Scroll zooms
+                if (scroll > 0) {
+                    settings.blocksPerPixel = Math.max(MIN_BLOCKS_PER_PIXEL, settings.blocksPerPixel / 2);
+                } else {
+                    settings.blocksPerPixel = Math.min(MAX_BLOCKS_PER_PIXEL, settings.blocksPerPixel * 2);
+                }
+                requestViewportUpdate();
+            }
+        }
+        // Let list handle scroll if mouse is in left panel
+        if (mouseX >= panelX && mouseX < panelX + panelWidth) {
+            if (activeTab == 0) {
+                biomeList.handleMouseInputAt(panelX, panelWidth);
+            } else {
+                seedList.handleMouseInputAt(panelX, panelWidth);
             }
         }
     }
@@ -1387,6 +1405,23 @@ public class GuiWorldPreview extends GuiScreen {
 
     public void cycleDimensionPrevious() {
         cycleDimensionBackward();
+    }
+
+    /**
+     * Select a dimension by its numeric id, used by embedded hosts to restore
+     * the previously active dimension after a tab rebuild.
+     */
+    public void selectDimensionById(int dimensionId) {
+        if (dimensionList == null || dimensionList.isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < dimensionList.size(); i++) {
+            if (dimensionList.get(i)
+                .dimensionId() == dimensionId) {
+                selectDimension(i);
+                return;
+            }
+        }
     }
 
     public int getCurrentDimensionIdValue() {
